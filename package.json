@@ -1,0 +1,18 @@
+{
+  "name": "trackr",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm run setup",
+    "setup": "npm --prefix backend ci && npm --prefix frontend ci",
+    "dev": "concurrently -k -n API,WEB -c cyan,green \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:qa": "concurrently -k -n API,WEB -c cyan,green \"npm --prefix backend run dev:qa\" \"npm --prefix frontend run dev\"",
+    "build": "npm --prefix frontend run build",
+    "test": "npm --prefix backend test",
+    "start": "npm --prefix backend start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.9.10"
+  }
+}
