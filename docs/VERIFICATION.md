@@ -31,8 +31,6 @@ Atlas-backed checks:
 
 Earlier isolated QA also verified combined backend company/status filtering, future-date validation, final-status behavior and the delete confirmation dialog. Automated tests cover allowed deletion in Applied and all final statuses.
 
-## Remaining assessment conditions
-
 ## Hosted verification
 
 - Live URL: https://trackr-albertjaison18.onrender.com

@@ -139,7 +139,7 @@ npm test             # 16 API/database and production-routing tests
 npm run build        # Frontend bundle in frontend/dist
 npm run dev          # Frontend and Atlas-backed API
 npm run dev:qa       # Frontend and temporary MongoDB with QA fixtures
-npm start            # Atlas-backed API only
+npm start            # API; also serves React when NODE_ENV=production
 ```
 
 Tests exercise validation, all 36 status pairs, histories, concurrent sequences/duplicates, immutable fields, editing, deletion, literal search, counts, CORS, error envelopes and overdue boundaries. They never write to Atlas.
