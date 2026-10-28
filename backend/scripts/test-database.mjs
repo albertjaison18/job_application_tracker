@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { MongoMemoryServer } from "mongodb-memory-server-core";
 
 export function startTestDatabase() {
   // An explicit cache keeps root and backend npm scripts on the same binary.

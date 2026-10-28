@@ -35,6 +35,6 @@ npm run dev
 
 ## Submission configuration
 
-The tracked `.env` contains placeholders. This assessment explicitly requires a runnable committed environment file: use **only a disposable exam-specific Atlas user/database** when configuring it. Never put personal or production credentials in the repository. Evaluators also need an Atlas IP access-list entry for the machine running their server. Verify Atlas before marking that README checklist item complete.
+The tracked `.env` uses a dedicated disposable exam-specific Atlas account, committed with explicit approval because this assessment requires a runnable environment file. The account has read/write access only to `job_application_tracker`. Access from any IP was explicitly approved for this test cluster to let evaluators connect. Never put personal or production credentials in this repository. The normal app has been verified against Atlas; the optional QA command still uses its own temporary database.
 
 Official references: [Create a free cluster](https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/), [Connect with a driver](https://www.mongodb.com/docs/atlas/driver-connection/).

@@ -2,11 +2,11 @@
 
 A MERN job application tracker with a responsive glassmorphism dashboard, application management and status timelines.
 
-**Implemented and verified:** responsive React frontend, Express backend, real MongoDB Atlas persistence, clean installation and production build. **Pending for evaluator setup:** runnable committed exam-only credentials and evaluator network access.
+**Implemented and verified:** responsive React frontend, Express backend, real MongoDB Atlas persistence, clean installation and production build. The committed environment uses a dedicated disposable exam account, with evaluator network access explicitly approved.
 
 ## Run
 
-Requires Node.js 22 or later and npm. Add your test Atlas URI to `backend/.env.local` using the [Atlas setup guide](docs/ATLAS_SETUP.md), then run from the project root:
+Requires Node.js 22.12 or later and npm. A dedicated exam-only Atlas connection is included in `backend/.env` as required by the assessment. Run from the project root:
 
 ```sh
 npm install
@@ -36,7 +36,7 @@ frontend/
   src/api.js            # Shared HTTP client and field definitions
   src/styles.css        # Responsive glassmorphism design
 backend/
-  .env                  # Committed dummy settings
+  .env                  # Dedicated exam-only test connection
   src/app.js            # REST routes and error responses
   src/models.js         # Mongoose schemas and indexes
   src/rules.js          # Workflow and input/date validation
@@ -114,7 +114,7 @@ Rejected, Accepted, Declined → final
 
 ## Environment variables
 
-`backend/.env` contains committed placeholders, which cannot connect. For local development, put the working test connection in ignored `backend/.env.local`:
+`backend/.env` contains a working connection for the dedicated disposable exam database, committed with explicit approval for evaluator access. It contains no personal or production credentials. To use your own test database, override it in ignored `backend/.env.local`:
 
 ```env
 MONGODB_URI=mongodb+srv://EXAM_USER:EXAM_PASSWORD@YOUR_CLUSTER.mongodb.net/job_application_tracker?retryWrites=true&w=majority
@@ -128,7 +128,7 @@ System variables take priority over `.env.local`, then `.env`. The backend loads
 
 You may keep the URI without its password and set `MONGODB_PASSWORD` separately in `.env.local`. The backend URL-encodes that raw password automatically. The local setup file is excluded from Git.
 
-The assessment requires a runnable committed `.env`. Before submission, configure it with **only a disposable exam-specific Atlas user/database** and arrange evaluator network access. Never commit personal or production credentials.
+The assessment requires a runnable committed `.env`. This repository uses **only a disposable exam-specific Atlas user/database**. Its account can read/write only `job_application_tracker`. Network access from any IP was explicitly approved for this test cluster so evaluators can connect. Never put personal or production credentials in this repository.
 
 ## Verification and scripts
 
@@ -163,7 +163,8 @@ Additional [mobile screenshot](docs/screenshots/mobile.png).
 - [x] API documentation and two working application screenshots
 - [x] Local integration tests and browser verification
 - [x] Real MongoDB Atlas connection verified
-- [ ] Committed exam-only `.env` runnable by evaluators
+- [x] Committed exam-only `.env` configured for evaluators
 - [x] Five meaningful implementation commits
 - [ ] Commit timing reviewed against the assessment's exam-duration rule
-- [ ] Final code pushed to the accessible GitHub repository before the deadline
+- [x] Project code pushed to the public GitHub repository
+- [ ] Submission portal link entered before the assessment deadline
