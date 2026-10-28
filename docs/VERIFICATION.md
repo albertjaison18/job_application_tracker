@@ -35,7 +35,7 @@ Earlier isolated QA also verified combined backend company/status filtering, fut
 
 - Live URL: https://trackr-albertjaison18.onrender.com
 - Provider: Render Free Node web service, Singapore.
-- Render built and deployed application commit `012f342` with Node.js 24.22.1.
+- The initial deployment used application commit `012f342` with Node.js 24.22.1; the UI refresh was subsequently deployed as `0a2e247`.
 - Public `/health` returned `databaseConnected: true`; public status counts matched Atlas.
 - The hosted frontend displayed all four demo applications.
 - A demo application's notes were edited through the hosted UI, saved to Atlas, and remained visible after reloading its direct details URL.
@@ -52,6 +52,9 @@ Earlier isolated QA also verified combined backend company/status filtering, fut
 - Confirmed the follow-up page defaults to oldest follow-up date first.
 - Fixed an icon-import error found during local browser QA; no new browser errors appeared in the follow-up checks.
 - Rebuilt the production bundle and reran all 16 existing tests successfully.
+- Verified no horizontal overflow at actual 360px, 390px, 768px, 1024px and 1440px viewports.
+- Render reported the redesign deployment `0a2e247` Live. Confirmed public company search and removable filters, the Offer stage's valid next statuses, and disabled deletion on the hosted site.
+- Refreshed dashboard, timeline and phone screenshots from the deployed redesign. The final hosted browser check reported no new console errors.
 
 ## Remaining assessment conditions
 

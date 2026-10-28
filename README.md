@@ -2,7 +2,7 @@
 
 **Live application:** [trackr-albertjaison18.onrender.com](https://trackr-albertjaison18.onrender.com)
 
-A MERN job application tracker with a responsive glassmorphism dashboard, application management and status timelines.
+A MERN job application tracker with a responsive glass-and-bento dashboard, focused application management and status timelines.
 
 **Implemented and verified:** responsive React frontend, Express backend, real MongoDB Atlas persistence, clean installation and production build. The committed environment uses a dedicated disposable exam account, with evaluator network access explicitly approved.
 
