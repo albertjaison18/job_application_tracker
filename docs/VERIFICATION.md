@@ -4,10 +4,11 @@ Verified on 28 October 2026 using Node.js 25.8.1 and npm 11.11.0.
 
 ## Automated checks
 
-- `npm test`: all 14 API/database integration tests passed.
+- `npm test`: all 16 API/database and production-routing tests passed.
 - All 36 combinations of existing/next statuses were checked.
 - Concurrent duplicate submissions and company sequence allocation were checked against a real isolated MongoDB process.
 - `npm run build`: production frontend bundle built successfully.
+- Production-routing tests verify React deep links, static assets, JSON API routing, health checks and hosted-origin writes.
 - `npm ci` and `npm run build` passed from a clean source copy without existing dependencies or local credentials.
 - The committed `.env` uses only a dedicated disposable exam account, published with explicit approval. The local override file remains excluded by `.gitignore`.
 

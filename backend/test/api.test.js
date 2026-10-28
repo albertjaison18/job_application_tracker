@@ -11,9 +11,12 @@ import {
 } from "../src/models.js";
 import { STATUSES, TRANSITIONS, today } from "../src/rules.js";
 import { connectionUri } from "../src/config.js";
+import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 let mongo;
-const testServer = createApp().listen(0, "127.0.0.1");
+const testServer = createApp({ serveFrontend: false }).listen(0, "127.0.0.1");
 const api = request(testServer);
 const input = (overrides = {}) => ({
   companyName: "Infosys",
@@ -320,4 +323,89 @@ test("separate database passwords are URL-encoded and placeholders are rejected"
       connectionUri({ ...env, MONGODB_PASSWORD: "PASTE_TEST_PASSWORD_HERE" }),
     /Set MONGODB_PASSWORD/,
   );
+});
+
+test("production serves React deep links and assets while preserving JSON API routes", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "trackr-front-"));
+  await mkdir(join(directory, "assets"));
+  await writeFile(
+    join(directory, "index.html"),
+    "<!doctype html><html><body>Trackr production shell</body></html>",
+  );
+  await writeFile(
+    join(directory, "assets", "app.js"),
+    'console.log("Trackr asset")',
+  );
+  const server = createApp({
+    serveFrontend: true,
+    frontendDirectory: directory,
+  }).listen(0, "127.0.0.1");
+  try {
+    const hosted = request(server);
+    for (const path of [
+      "/",
+      "/applications",
+      "/applications/new",
+      "/applications/0123456789abcdef01234567",
+      "/applications/0123456789abcdef01234567/edit",
+      "/follow-ups",
+    ]) {
+      const result = await hosted
+        .get(path)
+        .set("Accept", "text/html")
+        .expect(200);
+      assert.match(result.text, /Trackr production shell/);
+    }
+    await hosted.get("/assets/app.js").expect(200);
+    const list = await hosted.get("/api/applications").expect(200);
+    assert.ok(Array.isArray(list.body.data));
+    await hosted
+      .get("/applications")
+      .set("Accept", "application/json")
+      .expect(200);
+    const missingApi = await hosted
+      .get("/api/missing")
+      .set("Accept", "text/html")
+      .expect(404);
+    assert.equal(missingApi.body.success, false);
+    await hosted.get("/health").expect(200);
+    assert.throws(
+      () =>
+        createApp({
+          serveFrontend: true,
+          frontendDirectory: join(directory, "missing"),
+        }),
+      /Production frontend bundle is missing/,
+    );
+  } finally {
+    await new Promise((done) => server.close(done));
+    const target = resolve(directory);
+    assert.ok(
+      target.startsWith(resolve(tmpdir()) + "\\") ||
+        target.startsWith(resolve(tmpdir()) + "/"),
+    );
+    await rm(target, { recursive: true, force: true });
+  }
+});
+
+test("Render public origin is allowed for hosted frontend writes", async () => {
+  const previous = process.env.RENDER_EXTERNAL_URL;
+  process.env.RENDER_EXTERNAL_URL = "https://trackr-test.onrender.com";
+  const hostedApp = createApp({ serveFrontend: false });
+  if (previous === undefined) delete process.env.RENDER_EXTERNAL_URL;
+  else process.env.RENDER_EXTERNAL_URL = previous;
+  const server = hostedApp.listen(0, "127.0.0.1");
+  try {
+    const result = await request(server)
+      .post("/api/applications")
+      .set("Origin", "https://trackr-test.onrender.com")
+      .send(input())
+      .expect(201);
+    assert.equal(
+      result.headers["access-control-allow-origin"],
+      "https://trackr-test.onrender.com",
+    );
+  } finally {
+    await new Promise((done) => server.close(done));
+  }
 });

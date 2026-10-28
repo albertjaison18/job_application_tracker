@@ -22,8 +22,11 @@ async function start() {
   }).format();
   await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
   await Promise.all([Application.init(), CompanyCounter.init()]);
-  const server = createApp().listen(Number(process.env.PORT || 5010), () =>
-    console.log(`Trackr API listening on port ${process.env.PORT || 5010}`),
+  const server = createApp().listen(
+    Number(process.env.PORT || 5010),
+    "0.0.0.0",
+    () =>
+      console.log(`Trackr API listening on port ${process.env.PORT || 5010}`),
   );
   const shutdown = () =>
     server.close(async () => {
@@ -37,7 +40,8 @@ async function start() {
 start().catch(async (error) => {
   // Do not print a URI, credentials, or raw connection errors.
   console.error(
-    error.message.startsWith("Set MONGODB_")
+    error.message.startsWith("Set MONGODB_") ||
+      error.message.startsWith("Production frontend bundle")
       ? error.message
       : `Backend startup failed (${error.name}). Check your Atlas URI, database user and network access settings.`,
   );

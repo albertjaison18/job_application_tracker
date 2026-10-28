@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import { fileURLToPath } from "node:url";
+import { attachFrontend } from "./frontend.js";
 import { Application, CompanyCounter, presentApplication } from "./models.js";
 import {
   ApiError,
@@ -42,14 +44,23 @@ async function nextSequence(companyKey) {
   }
 }
 
-export function createApp() {
+export function createApp({
+  serveFrontend = process.env.NODE_ENV === "production",
+  frontendDirectory = fileURLToPath(
+    new URL("../../frontend/dist/", import.meta.url),
+  ),
+} = {}) {
   const app = express();
   app.disable("x-powered-by");
-  const origins = (
-    process.env.CLIENT_ORIGIN || "http://localhost:5178,http://127.0.0.1:5178"
-  )
-    .split(",")
-    .map((s) => s.trim());
+  const origins = [
+    ...(
+      process.env.CLIENT_ORIGIN || "http://localhost:5178,http://127.0.0.1:5178"
+    ).split(","),
+    process.env.RENDER_EXTERNAL_URL,
+    process.env.PUBLIC_APP_URL,
+  ]
+    .filter(Boolean)
+    .map((origin) => origin.trim().replace(/\/$/, ""));
   app.use(
     cors({
       origin(origin, callback) {
@@ -222,6 +233,7 @@ export function createApp() {
       );
     respond(res, 200, "Application deleted.");
   });
+  if (serveFrontend) attachFrontend(app, frontendDirectory);
   app.use("/applications", router);
   app.use("/api/applications", router);
   app.use((req, res) => respond(res, 404, "API endpoint not found."));
@@ -232,33 +244,29 @@ export function createApp() {
     if (error.type === "entity.too.large")
       return respond(res, 400, "Request body is too large.");
     if (error instanceof mongoose.Error.ValidationError) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Validation failed.",
-          data: null,
-          errors: Object.fromEntries(
-            Object.entries(error.errors).map(([key, value]) => [
-              key,
-              value.message,
-            ]),
-          ),
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed.",
+        data: null,
+        errors: Object.fromEntries(
+          Object.entries(error.errors).map(([key, value]) => [
+            key,
+            value.message,
+          ]),
+        ),
+      });
     }
     const status = error.status || 500;
     if (status >= 500) console.error("API request failed:", error.name);
-    res
-      .status(status)
-      .json({
-        success: false,
-        message:
-          status >= 500
-            ? "Unexpected server error. Please try again."
-            : error.message,
-        data: null,
-        ...(error.errors ? { errors: error.errors } : {}),
-      });
+    res.status(status).json({
+      success: false,
+      message:
+        status >= 500
+          ? "Unexpected server error. Please try again."
+          : error.message,
+      data: null,
+      ...(error.errors ? { errors: error.errors } : {}),
+    });
   });
   return app;
 }

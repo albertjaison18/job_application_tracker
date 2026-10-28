@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: trackr-albertjaison18
+    runtime: node
+    plan: free
+    region: singapore
+    repo: https://github.com/albertjaison18/job_application_tracker
+    branch: main
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production

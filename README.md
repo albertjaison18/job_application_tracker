@@ -133,7 +133,7 @@ The assessment requires a runnable committed `.env`. This repository uses **only
 ## Verification and scripts
 
 ```sh
-npm test             # 14 API/database integration tests
+npm test             # 16 API/database and production-routing tests
 npm run build        # Frontend bundle in frontend/dist
 npm run dev          # Frontend and Atlas-backed API
 npm run dev:qa       # Frontend and temporary MongoDB with QA fixtures
@@ -145,6 +145,14 @@ Tests exercise validation, all 36 status pairs, histories, concurrent sequences/
 Browser checks verified creation, editing, immutable dates, workflow updates, deletion protection/confirmation, duplicate errors, future dates, backend filtering and responsive layouts against the temporary QA database. The normal app was then connected to a dedicated Atlas Free cluster: frontend creation, persisted status histories, allowed-next-status options, deletion restrictions, counts and overdue badges were verified against Atlas. Four clearly marked demo applications were saved through the frontend.
 
 The project also passed `npm ci` and a production build from a clean source copy without existing dependencies or local credentials.
+
+## Hosting
+
+`render.yaml` defines one Free Node web service in Singapore. Its build command is `npm ci --include=dev && npm run build`, start command is `npm start`, and health check is `/health`. `.node-version` pins the deployment to Node.js 24.22.1.
+
+With `NODE_ENV=production`, Express serves `frontend/dist` and the API from one origin. Browser deep links render React; `/api/applications` continues to return JSON. The frontend uses its relative `/api` base URL, so no separate frontend deployment or API URL change is required. Render's automatically supplied `RENDER_EXTERNAL_URL` is included in allowed origins for browser writes. `PUBLIC_APP_URL` is available for another host or a custom domain.
+
+For a public-repository deployment created without linking a Git provider, push updates to GitHub and use Render **Manual Deploy → Deploy latest commit** to publish them. A Free Render web service can sleep after 15 minutes without traffic; the next visit may take about a minute to start. Data stays in Atlas across restarts. [Render free-service documentation](https://render.com/docs/free).
 
 ## Working application screenshots
 
