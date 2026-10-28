@@ -1,5 +1,7 @@
 # Trackr — Your next chapter
 
+**Live application:** [trackr-albertjaison18.onrender.com](https://trackr-albertjaison18.onrender.com)
+
 A MERN job application tracker with a responsive glassmorphism dashboard, application management and status timelines.
 
 **Implemented and verified:** responsive React frontend, Express backend, real MongoDB Atlas persistence, clean installation and production build. The committed environment uses a dedicated disposable exam account, with evaluator network access explicitly approved.
@@ -151,6 +153,8 @@ The project also passed `npm ci` and a production build from a clean source copy
 `render.yaml` defines one Free Node web service in Singapore. Its build command is `npm ci --include=dev && npm run build`, start command is `npm start`, and health check is `/health`. `.node-version` pins the deployment to Node.js 24.22.1.
 
 With `NODE_ENV=production`, Express serves `frontend/dist` and the API from one origin. Browser deep links render React; `/api/applications` continues to return JSON. The frontend uses its relative `/api` base URL, so no separate frontend deployment or API URL change is required. Render's automatically supplied `RENDER_EXTERNAL_URL` is included in allowed origins for browser writes. `PUBLIC_APP_URL` is available for another host or a custom domain.
+
+The live deployment was verified with the Atlas-backed dashboard, a hosted form edit, a direct details-page reload, and [the database readiness endpoint](https://trackr-albertjaison18.onrender.com/health).
 
 For a public-repository deployment created without linking a Git provider, push updates to GitHub and use Render **Manual Deploy → Deploy latest commit** to publish them. A Free Render web service can sleep after 15 minutes without traffic; the next visit may take about a minute to start. Data stays in Atlas across restarts. [Render free-service documentation](https://render.com/docs/free).
 

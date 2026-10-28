@@ -33,6 +33,19 @@ Earlier isolated QA also verified combined backend company/status filtering, fut
 
 ## Remaining assessment conditions
 
+## Hosted verification
+
+- Live URL: https://trackr-albertjaison18.onrender.com
+- Provider: Render Free Node web service, Singapore.
+- Render built and deployed application commit `012f342` with Node.js 24.22.1.
+- Public `/health` returned `databaseConnected: true`; public status counts matched Atlas.
+- The hosted frontend displayed all four demo applications.
+- A demo application's notes were edited through the hosted UI, saved to Atlas, and remained visible after reloading its direct details URL.
+- The final hosted browser check reported no console errors.
+- Desktop 1440px and mobile 390px layouts had no horizontal overflow. Dashboard and mobile screenshots were refreshed from the live site.
+
+## Remaining assessment conditions
+
 The project has real implementation commits with their actual creation timestamps; commit times have not been backdated. Review the assessment's requirement for commits spread across its exam duration.
 
 The dedicated test credential was explicitly approved for publication in `.env`. Access from any IP was also explicitly approved for only this disposable test cluster, so evaluators can connect without sharing their IP address in advance. The account is limited to the `job_application_tracker` database.
