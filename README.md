@@ -34,7 +34,8 @@ This optional command starts a **real temporary MongoDB process**, inserts QA fi
 ```text
 frontend/
   .env                  # API URL and development proxy
-  src/App.jsx           # Dashboard, forms, details and follow-ups
+  src/App.jsx           # Navigation, forms and application details
+  src/Dashboard.jsx     # Bento overview, application list and follow-ups
   src/api.js            # Shared HTTP client and field definitions
   src/styles.css        # Responsive glassmorphism design
 backend/
@@ -64,6 +65,9 @@ docs/
 - Pre-filled editing, delete confirmation and disabled deletion during Interview/Offer.
 - Loading, empty, success, validation and API failure states.
 - Desktop/mobile layouts, keyboard focus indicators and reduced-motion support.
+- Bento overview with a data-driven overdue tile and pipeline chart, plus a focused Applications page.
+- Removable filter chips, quick card editing, larger mobile controls and a desktop form preview.
+- Mobile bottom navigation that stays out of the way during form entry, and follow-ups sorted by due date by default.
 
 ## REST APIs
 

@@ -11,7 +11,7 @@ export async function api(path, options = {}) {
   } catch (error) {
     if (error.name === "AbortError") throw error;
     throw new Error(
-      "Unable to reach the server. Check that the backend is running and try again.",
+      "We couldn’t connect to your workspace. Check your connection and try again.",
     );
   }
   let result;
@@ -19,7 +19,7 @@ export async function api(path, options = {}) {
     result = await response.json();
   } catch {
     throw new Error(
-      "The API is unavailable. Check the backend and MongoDB connection.",
+      "Your workspace is temporarily unavailable. Please try again in a moment.",
     );
   }
   if (!response.ok || !result.success) {

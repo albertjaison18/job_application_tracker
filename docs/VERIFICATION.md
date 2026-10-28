@@ -42,6 +42,17 @@ Earlier isolated QA also verified combined backend company/status filtering, fut
 - The final hosted browser check reported no console errors.
 - Desktop 1440px and mobile 390px layouts had no horizontal overflow. Dashboard and mobile screenshots were refreshed from the live site.
 
+## UI/UX refresh checks
+
+- Reworked Overview into a bento layout with a frosted opportunity panel, overdue summary and actual pipeline counts.
+- Applications now has a focused list layout with card/list controls, removable search/status chips and quick edit links.
+- Confirmed combined company/status filtering and list view against Atlas.
+- Confirmed the desktop form preview updates with the entered company and role; preview changes were not saved as applications.
+- Confirmed pre-filled phone editing, a successful save, immutable applied date, and cancellation of the delete confirmation.
+- Confirmed the follow-up page defaults to oldest follow-up date first.
+- Fixed an icon-import error found during local browser QA; no new browser errors appeared in the follow-up checks.
+- Rebuilt the production bundle and reran all 16 existing tests successfully.
+
 ## Remaining assessment conditions
 
 The project has real implementation commits with their actual creation timestamps; commit times have not been backdated. Review the assessment's requirement for commits spread across its exam duration.

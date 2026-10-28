@@ -7,7 +7,6 @@ import {
   useLocation,
   useNavigate,
   useParams,
-  useSearchParams,
 } from "react-router-dom";
 import {
   ArrowDownUp,
@@ -23,26 +22,21 @@ import {
   ChevronRight,
   CircleHelp,
   Clock3,
-  ExternalLink,
   FileText,
   CodeXml,
   LayoutDashboard,
-  LayoutGrid,
-  List,
   LoaderCircle,
   MessageSquare,
-  MoreHorizontal,
   Pencil,
   Plus,
-  Search,
   Send,
   Sparkles,
   Target,
   Trash2,
-  TrendingUp,
   X,
 } from "lucide-react";
-import { api, dateLabel, JOB_TYPES, localDay, STATUSES } from "./api.js";
+import { api, dateLabel, JOB_TYPES, localDay } from "./api.js";
+import Dashboard, { CompanyMark } from "./Dashboard.jsx";
 
 const NoticeContext = createContext(() => {});
 const statusClass = (status) => status.toLowerCase();
@@ -137,6 +131,8 @@ function Modal({ title, children, onClose }) {
 
 export default function App() {
   const { pathname } = useLocation();
+  const formPage =
+    pathname === "/applications/new" || pathname.endsWith("/edit");
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
@@ -149,7 +145,10 @@ export default function App() {
   }, [notice]);
   return (
     <NoticeContext.Provider value={setNotice}>
-      <div className="app-shell">
+      <div className={`app-shell ${formPage ? "form-page" : ""}`}>
+        <a className="skip-link" href="#main-content">
+          Skip to main content
+        </a>
         <aside className="sidebar">
           <Brand />
           <div className="sidebar-workspace">
@@ -160,7 +159,6 @@ export default function App() {
               <strong>My workspace</strong>
               <span>Your career, organized</span>
             </div>
-            <ChevronDown size={14} />
           </div>
           <span className="nav-label">WORKSPACE</span>
           <nav>
@@ -208,7 +206,19 @@ export default function App() {
             <div className="breadcrumb">
               Workspace
               <ChevronRight size={13} />
-              <span>Job application tracker</span>
+              <span>
+                {pathname === "/"
+                  ? "Overview"
+                  : pathname === "/applications"
+                    ? "Applications"
+                    : pathname === "/follow-ups"
+                      ? "Follow-ups"
+                      : pathname.endsWith("/new")
+                        ? "Add application"
+                        : pathname.endsWith("/edit")
+                          ? "Edit application"
+                          : "Application details"}
+              </span>
             </div>
             <div className="topbar-actions">
               <span className="today-label">
@@ -238,7 +248,7 @@ export default function App() {
               <span className="top-avatar">ME</span>
             </div>
           </header>
-          <main>
+          <main id="main-content" tabIndex={-1}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/applications" element={<Dashboard />} />
@@ -329,476 +339,6 @@ export default function App() {
         )}
       </div>
     </NoticeContext.Provider>
-  );
-}
-
-function Dashboard({ followUpsOnly = false }) {
-  const [params, setParams] = useSearchParams();
-  const company = params.get("company") || "";
-  const status = params.get("status") || "";
-  const [search, setSearch] = useState(company);
-  const [data, setData] = useState(null);
-  const [error, setError] = useState("");
-  const [revision, setRevision] = useState(0);
-  const [view, setView] = useState("grid");
-  const [sort, setSort] = useState("newest");
-  useEffect(() => setSearch(company), [company]);
-  useEffect(() => {
-    if (search === company) return;
-    const timer = setTimeout(
-      () =>
-        setParams(
-          (previous) => {
-            const next = new URLSearchParams(previous);
-            search.trim()
-              ? next.set("company", search.trim())
-              : next.delete("company");
-            return next;
-          },
-          { replace: true },
-        ),
-      350,
-    );
-    return () => clearTimeout(timer);
-  }, [search, company, setParams]);
-  useEffect(() => {
-    const controller = new AbortController();
-    setError("");
-    setData(null);
-    const query = new URLSearchParams();
-    if (company) query.set("company", company);
-    if (followUpsOnly) query.set("status", "Applied");
-    else if (status) query.set("status", status);
-    Promise.all([
-      api(`/applications?${query}`, { signal: controller.signal }),
-      api("/applications/stats", { signal: controller.signal }),
-      api("/applications?status=Applied", { signal: controller.signal }),
-    ])
-      .then(([applications, stats, followUps]) =>
-        setData({ applications, stats, followUps }),
-      )
-      .catch((reason) => {
-        if (reason.name !== "AbortError") setError(reason.message);
-      });
-    return () => controller.abort();
-  }, [company, status, revision, followUpsOnly]);
-  const setStatus = (value) =>
-    setParams((previous) => {
-      const next = new URLSearchParams(previous);
-      value ? next.set("status", value) : next.delete("status");
-      return next;
-    });
-  const total = data
-    ? Object.values(data.stats).reduce((sum, count) => sum + count, 0)
-    : 0;
-  const applications = data
-    ? [...data.applications].sort((a, b) =>
-        sort === "company"
-          ? a.companyName.localeCompare(b.companyName)
-          : sort === "oldest"
-            ? new Date(a.createdAt) - new Date(b.createdAt)
-            : new Date(b.createdAt) - new Date(a.createdAt),
-      )
-    : [];
-  const followUps = data
-    ? [...data.followUps].sort(
-        (a, b) => new Date(a.followUpDate) - new Date(b.followUpDate),
-      )
-    : [];
-  return (
-    <>
-      <div className="page-heading">
-        <div>
-          <div className="eyebrow">
-            <span /> YOUR CAREER, IN MOTION
-          </div>
-          <h1>
-            {followUpsOnly
-              ? "A thoughtful follow-up."
-              : "Your next chapter starts here."}
-          </h1>
-          <p>
-            {followUpsOnly
-              ? "A small nudge can open a big door. Here’s who to check in with."
-              : "Less juggling. More possibility. All your applications, in one place."}
-          </p>
-        </div>
-        <Link to="/applications/new" className="button primary">
-          <Plus size={18} />
-          Add application
-        </Link>
-      </div>
-      {!followUpsOnly && (
-        <section className="hero glass">
-          <div className="hero-copy">
-            <span className="hero-kicker">
-              <Sparkles size={14} /> A LITTLE CLARITY. A LOT OF POSSIBILITY.
-            </span>
-            <h2>
-              Big ambitions.
-              <br />
-              <span>Meet your game plan.</span>
-            </h2>
-            <p>
-              From the first “sent” to the final “you’re hired.”
-              <br />
-              Make room for the opportunities ahead.
-            </p>
-            <Link to="/applications/new" className="hero-link">
-              Track your next opportunity <ArrowUpRight size={17} />
-            </Link>
-          </div>
-          <div className="hero-art" aria-hidden="true">
-            <div className="orbit orbit-one" />
-            <div className="orbit orbit-two" />
-            <div className="art-spark">✧</div>
-            <div className="floating-chip chip-one">
-              <span>
-                <Check size={15} />
-              </span>
-              Application sent
-            </div>
-            <div className="art-center">
-              <TrendingUp size={68} strokeWidth={1.3} />
-            </div>
-            <div className="floating-chip chip-two">
-              <span>
-                <Sparkles size={15} />
-              </span>
-              Your next big thing
-            </div>
-            <div className="art-dot dot-one" />
-            <div className="art-dot dot-two" />
-          </div>
-        </section>
-      )}
-      {!followUpsOnly && (
-        <section className="stats-grid" aria-label="Application counts">
-          {STATUSES.map((name) => {
-            const Icon = statusIcons[name];
-            return (
-              <button
-                key={name}
-                className={`stat-card glass ${status === name ? "selected" : ""}`}
-                onClick={() => setStatus(status === name ? "" : name)}
-                aria-pressed={status === name}
-              >
-                <span className={`stat-icon ${statusClass(name)}`}>
-                  <Icon size={16} />
-                </span>
-                <span className="stat-name">{name}</span>
-                <strong>{data ? data.stats[name] : "—"}</strong>
-                <span className="stat-bottom">
-                  {name === "Applied"
-                    ? "First steps taken"
-                    : name === "Interview"
-                      ? "Conversations started"
-                      : name === "Offer"
-                        ? "Possibilities ahead"
-                        : name === "Accepted"
-                          ? "New chapters"
-                          : name === "Declined"
-                            ? "Your choice"
-                            : "Lessons learned"}
-                </span>
-              </button>
-            );
-          })}
-        </section>
-      )}
-      <div className="dashboard-columns">
-        <section className="applications-section">
-          <div className="section-heading">
-            <div>
-              <h2>
-                {followUpsOnly ? "Your follow-ups" : "Your applications"}
-                <span className="count-pill">
-                  {data ? (followUpsOnly ? applications.length : total) : "—"}
-                </span>
-              </h2>
-              <p>
-                {followUpsOnly
-                  ? "Applications still waiting for a response."
-                  : "Every opportunity has a story. Keep yours moving."}
-              </p>
-            </div>
-            <div className="view-switch" aria-label="View layout">
-              <button
-                className={view === "grid" ? "active" : ""}
-                onClick={() => setView("grid")}
-                aria-label="Card view"
-                aria-pressed={view === "grid"}
-              >
-                <LayoutGrid size={16} />
-              </button>
-              <button
-                className={view === "list" ? "active" : ""}
-                onClick={() => setView("list")}
-                aria-label="List view"
-                aria-pressed={view === "list"}
-              >
-                <List size={17} />
-              </button>
-            </div>
-          </div>
-          <div className="filters glass">
-            <label className="search-box">
-              <Search size={17} />
-              <input
-                aria-label="Search by company"
-                placeholder="Search by company…"
-                value={search}
-                maxLength={120}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-              {search && (
-                <button
-                  className="clear-search"
-                  aria-label="Clear search"
-                  onClick={() => setSearch("")}
-                >
-                  <X size={15} />
-                </button>
-              )}
-            </label>
-            {!followUpsOnly && (
-              <label className="select-wrap">
-                <select
-                  aria-label="Filter by status"
-                  value={status}
-                  onChange={(event) => setStatus(event.target.value)}
-                >
-                  <option value="">All statuses</option>
-                  {STATUSES.map((name) => (
-                    <option key={name}>{name}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} />
-              </label>
-            )}
-            <label className="select-wrap sort-select">
-              <ArrowDownUp size={14} />
-              <select
-                aria-label="Sort applications"
-                value={sort}
-                onChange={(event) => setSort(event.target.value)}
-              >
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
-                <option value="company">Company A–Z</option>
-              </select>
-              <ChevronDown size={14} />
-            </label>
-          </div>
-          {error ? (
-            <ErrorPanel
-              error={error}
-              retry={() => setRevision((value) => value + 1)}
-            />
-          ) : !data ? (
-            <Loading />
-          ) : applications.length ? (
-            <>
-              <div
-                className={`application-grid ${view === "list" ? "list-view" : ""}`}
-              >
-                {applications.map((application) => (
-                  <ApplicationCard
-                    key={application._id}
-                    application={application}
-                  />
-                ))}
-              </div>
-              <div className="results-note">
-                Showing {applications.length} application
-                {applications.length === 1 ? "" : "s"}
-                {company && <> matching “{company}”</>}
-                {status && !followUpsOnly && <> · {status}</>}
-              </div>
-            </>
-          ) : (
-            <div className="empty-state glass">
-              <span className="empty-icon">
-                <BriefcaseBusiness size={29} />
-              </span>
-              <h3>
-                {company || status
-                  ? "No matches just yet."
-                  : followUpsOnly
-                    ? "Your follow-up list is clear."
-                    : "Your next chapter is a click away."}
-              </h3>
-              <p>
-                {company || status
-                  ? "Try a different company or clear your filters."
-                  : followUpsOnly
-                    ? "New applications will appear here until their status changes."
-                    : "Add your first application and bring a little clarity to your job search."}
-              </p>
-              {company || status ? (
-                <button
-                  className="button secondary"
-                  onClick={() => {
-                    setSearch("");
-                    setParams({});
-                  }}
-                >
-                  Clear filters
-                </button>
-              ) : (
-                !followUpsOnly && (
-                  <Link className="button primary" to="/applications/new">
-                    <Plus size={16} />
-                    Add your first application
-                  </Link>
-                )
-              )}
-            </div>
-          )}
-        </section>
-        <aside className="right-column">
-          <section className="followup-panel glass">
-            <div className="panel-heading">
-              <span className="panel-icon">
-                <Bell size={17} />
-              </span>
-              <h3>On your radar</h3>
-              <span className="tiny-dot" />
-            </div>
-            <p className="panel-description">
-              A timely check-in goes a long way.
-            </p>
-            {data ? (
-              followUps.length ? (
-                <div className="followup-items">
-                  {followUps.slice(0, 3).map((application) => (
-                    <Link
-                      to={`/applications/${application._id}`}
-                      key={application._id}
-                      className="followup-item"
-                    >
-                      <CompanyMark name={application.companyName} small />
-                      <div>
-                        <strong>{application.companyName}</strong>
-                        <span>{application.jobRole}</span>
-                        <small
-                          className={
-                            application.isOverdue ? "overdue-text" : ""
-                          }
-                        >
-                          <Clock3 size={11} />
-                          {application.isOverdue
-                            ? "Follow-up overdue"
-                            : dateLabel(application.followUpDate)}
-                        </small>
-                      </div>
-                      <ChevronRight size={14} />
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="radar-empty">
-                  <Check size={21} />
-                  <p>
-                    You’re all caught up.
-                    <br />
-                    <span>We’ll keep an eye on your next steps.</span>
-                  </p>
-                </div>
-              )
-            ) : (
-              <p className="panel-description">
-                {error
-                  ? "Connect the API to see follow-ups."
-                  : "Checking your next steps…"}
-              </p>
-            )}
-            <Link to="/follow-ups" className="panel-link">
-              View all follow-ups <ArrowRight size={14} />
-            </Link>
-          </section>
-          <section className="momentum-panel">
-            <span className="momentum-icon">
-              <Target size={22} />
-            </span>
-            <span className="eyebrow">THE BIGGER PICTURE</span>
-            <h3>
-              Progress isn’t
-              <br />
-              always a straight line.
-            </h3>
-            <p>
-              Every conversation, every application, every follow-up. It all
-              moves you forward.
-            </p>
-            <div className="momentum-progress">
-              <span>Offers & accepted</span>
-              <strong>
-                {data ? data.stats.Offer + data.stats.Accepted : "—"}
-                <small> / {data ? total : "—"}</small>
-              </strong>
-            </div>
-            <div className="progress-track">
-              <span
-                style={{
-                  width: `${data && total ? ((data.stats.Offer + data.stats.Accepted) / total) * 100 : 0}%`,
-                }}
-              />
-            </div>
-            <span className="momentum-footnote">
-              Small steps. Real momentum.
-            </span>
-          </section>
-        </aside>
-      </div>
-    </>
-  );
-}
-
-function CompanyMark({ name, small = false }) {
-  const hue = [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 5;
-  return (
-    <span className={`company-mark mark-${hue} ${small ? "small" : ""}`}>
-      {name.slice(0, 1).toUpperCase()}
-    </span>
-  );
-}
-function ApplicationCard({ application: a }) {
-  return (
-    <article className="application-card glass">
-      <div className="card-top">
-        <CompanyMark name={a.companyName} />
-        <Badge status={a.status} />
-      </div>
-      <Link to={`/applications/${a._id}`} className="card-title">
-        <h3>{a.jobRole}</h3>
-        <p>
-          {a.companyName}
-          <span>·</span>
-          {a.jobType}
-        </p>
-      </Link>
-      <span className="application-id">{a.applicationId}</span>
-      {a.isOverdue && (
-        <span className="overdue-badge">
-          <Clock3 size={12} />
-          Follow-up Overdue
-        </span>
-      )}
-      <div className="card-bottom">
-        <span>
-          <CalendarDays size={13} />
-          {dateLabel(a.appliedDate)}
-        </span>
-        <Link
-          to={`/applications/${a._id}`}
-          aria-label={`View ${a.jobRole} at ${a.companyName}`}
-        >
-          View details
-          <ArrowUpRight size={14} />
-        </Link>
-      </div>
-    </article>
   );
 }
 
@@ -958,9 +498,9 @@ function ApplicationDetails() {
             </div>
           </section>
           <section className="detail-card glass status-section">
-            <h2>What’s your next step?</h2>
+            <h2>Update application status</h2>
             <p className="muted">
-              Keep your application up to date as things move forward.
+              Choose the next stage. Only valid transitions are available.
             </p>
             {a.allowedNextStatuses.length ? (
               <form onSubmit={changeStatus} className="status-form">
@@ -1215,11 +755,13 @@ function ApplicationForm({ editing = false }) {
           <div className="eyebrow">
             <span /> {editing ? "KEEP YOUR STORY CURRENT" : "A NEW POSSIBILITY"}
           </div>
-          <h1>{editing ? "Fine-tune the details." : "Make your next move."}</h1>
+          <h1>
+            {editing ? "Update your application." : "Add an application."}
+          </h1>
           <p>
             {editing
-              ? "A little update keeps everything in order."
-              : "Capture the details now. Your future self will thank you."}
+              ? "Keep the details current. Your history stays right where it belongs."
+              : "A few details now. A clearer picture of what comes next."}
           </p>
         </div>
       </div>
@@ -1351,6 +893,23 @@ function ApplicationForm({ editing = false }) {
           </div>
         </form>
         <aside className="form-aside">
+          <section className="form-preview glass">
+            <span className="eyebrow">APPLICATION PREVIEW</span>
+            <div className="preview-top">
+              <CompanyMark name={values.companyName.trim() || "Your company"} />
+              <Badge status={editing ? original.status : "Applied"} />
+            </div>
+            <h3>{values.jobRole.trim() || "Your next opportunity"}</h3>
+            <p>{values.companyName.trim() || "Company name"}</p>
+            <span className="preview-type">
+              <BriefcaseBusiness size={14} />
+              {values.jobType}
+            </span>
+            <div className="preview-note">
+              <Pencil size={13} />
+              Updates as you fill in the form.
+            </div>
+          </section>
           <section className="form-tip glass">
             <span className="tip-symbol">
               <Sparkles size={25} />
